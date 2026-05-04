@@ -3,7 +3,7 @@
 [BH3D](https://shshin1210.github.io/DDSL/) (Broadband Hyperspectral 3D Imaging using Dispersed Structured Light) reconstructs depth and both spectral information : Visible to SWIR (450nm ~ 1500nm) spectral ranges at 20nm (visible range) 25nm (SWIR range) interval.
 
 
-## Pipeline overview
+## BH3D Pipeline overview
 
 `main.py` runs five steps in order. Steps 2–4 are run
 once per camera (`nir`, `swir`); step 1 happens for both cameras
@@ -18,12 +18,14 @@ together; step 5 is run once at the end.
 | 5 | Warping | `vnir_utils/warp.py` | Detail-transfers using a guided filter on the SWIR side, then warps each SWIR wavelength into the NIR camera view using both depth maps + an occlusion gate. PNGs go to `<warp_output_dir>/<scene>/`. |
 
 
-## Project layout
+## BH3D layout
 
 ```
 clean_code/
 ├── main.py
 ├── README.md
+├── dataset/
+├── calibration/
 ├── bh3d_utils/
 │   ├── argparser.py       
 │   ├── hdr.py          
@@ -47,10 +49,12 @@ modified):
 
 * `FoundationStereo/` — pretrained stereo model
 * `guided_filter/` — guided-filter implementation used by sharpening
-* `calibration/` — radiometric, prism, and stereo calibration data (We provide an expample calibration parameters in our [BH3D Calibration Parameters](https://drive.google.com/drive/u/0/folders/128apzV3A4GjllRUOafMHEM0yIY_EZvLf).)
+* `calibration/` — radiometric, prism, and stereo calibration data
 * `dataset/` — captured frames, radiometric data, and HDR raw captures
 
-## Argparser additions
+We provide an expample calibration parameters and datsets in our [BH3D Calibration Parameters](https://drive.google.com/drive/u/0/folders/128apzV3A4GjllRUOafMHEM0yIY_EZvLf).
+
+## Argparser
 
 All new arguments live in `bh3d_utils/argparser.py`. They
 are introduced under banners that read
@@ -72,11 +76,11 @@ From the repository root:
 
 ```bash
 # Default scene = extra_scene, both cameras, then warp
-python -m main
+python main.py
 
 # Different scene + skip HDR if it has already been built
-python -m main --scene_name my_scene --skip_hdr
+python main.py --scene_name my_scene --skip_hdr
 
 # Only run NIR (no warp)
-python -m main --cam_types nir --run_warp false
+python main.py --cam_types nir --run_warp false
 ```
