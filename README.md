@@ -2,8 +2,12 @@
 
 [BH3D](https://shshin1210.github.io/DDSL/) (Broadband Hyperspectral 3D Imaging using Dispersed Structured Light) reconstructs depth and both spectral information : Visible to SWIR (450nm ~ 1500nm) spectral ranges at 20nm (visible range) 25nm (SWIR range) interval.
 
+## Image system configuation
+<img width="1044" height="326" alt="image" src="https://github.com/user-attachments/assets/989b6e74-ac4d-46e2-a4a4-24ec480fadb0" />
 
-## BH3D Pipeline overview
+**This is the BH3D imaging system configuration, please refer to the Supplementary Document for specific experimental prototype.**
+
+## BH3D pipeline overview
 
 `main.py` runs five steps in order. Steps 2–4 are run
 once per camera (`nir`, `swir`); step 1 happens for both cameras
@@ -53,6 +57,7 @@ modified):
 * `dataset/` — captured frames, radiometric data, and HDR raw captures
 
 We provide an expample calibration parameters and datsets in our [BH3D Calibration Parameters](https://drive.google.com/drive/u/0/folders/128apzV3A4GjllRUOafMHEM0yIY_EZvLf).
+Please refer to our Main paper and Supplementary Document for the details of data-driven Gaussian Model.
 
 ## Argparser
 
