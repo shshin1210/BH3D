@@ -1,11 +1,3 @@
-"""
-    Common utilities used by the clean_code pipeline.
-
-    These are trimmed down versions of the originals in ../vnir_utils/utils.py.
-    Visualization / debugging helpers that were only used inside notebooks
-    or rebuttal scripts have been intentionally removed for clarity.
-"""
-
 import os
 import time
 

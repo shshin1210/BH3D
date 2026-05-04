@@ -1,11 +1,3 @@
-"""
-    Stereo rectification of NIR / SWIR images.
-
-    Saves rectified images to `<real_dataset>_depth/rectified/<cam>/`
-    and the rectification parameters (R1, R2, P1, P2, Q) to
-    `args.rectified_param_dir`.
-"""
-
 import glob
 import os
 import time

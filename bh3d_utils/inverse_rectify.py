@@ -13,7 +13,7 @@ import numpy as np
 import scipy.io as io
 from tqdm import tqdm
 
-from clean_code.vnir_utils import depth_utils
+from bh3d_utils import depth_utils
 
 
 def inverse_rectify(args, date, horizontal_flip):

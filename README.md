@@ -102,7 +102,7 @@ in its `help` string. They cover:
 * Warping: `--warp_output_dir`, `--warp_depth_thresh_mm`,
   `--warp_smooth_depth1`, `--warp_smooth_ksize`, `--warp_smooth_sigma`,
   `--guided_r`, `--guided_eps`, `--guided_alpha`,
-  `--swir_warp_idx_start`, `--swir_warp_idx_end`, `--swir_guide_idx`
+  `--nir_sharp_lo`, `--nir_sharp_hi`, `--swir_sharp_lo`, `--swir_sharp_hi`
 * Pipeline: `--cam_types`, `--run_warp`
 
 ## How to run

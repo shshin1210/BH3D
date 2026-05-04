@@ -1,11 +1,3 @@
-"""
-    Depth reconstruction using Foundation Stereo.
-
-    The clean_code variant only keeps `recon_depth_foundation` (the
-    pre-trained Foundation Stereo path); the older RAFT-Stereo path
-    in ../vnir_recon/recon_depth.py is dropped.
-"""
-
 import glob
 import logging
 import os
@@ -22,7 +14,6 @@ from PIL import Image
 from omegaconf import OmegaConf
 from tqdm import tqdm
 
-# Foundation Stereo lives at the repo root, not inside clean_code.
 sys.path.append('./FoundationStereo')
 sys.path.append('./FoundationStereo/cores')
 
@@ -30,7 +21,7 @@ from core.foundation_stereo import FoundationStereo  # noqa: E402
 from core.utils.utils import InputPadder  # noqa: E402
 from Utils import set_logging_format, set_seed, vis_disparity  # noqa: E402
 
-from clean_code.vnir_utils import inverse_rectify, rectify
+from bh3d_utils import inverse_rectify, rectify
 
 
 class ReconDepth:

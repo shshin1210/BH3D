@@ -12,6 +12,7 @@ __pycache__/
 *.jpeg
 *.gif
 *.svg
+*.mat
 
 
 # Distribution / packaging

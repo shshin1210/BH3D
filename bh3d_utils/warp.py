@@ -1,18 +1,3 @@
-"""
-    ### NEW (clean_code) ###
-    Warping + guided-filter detail transfer for hyperspectral output.
-
-    Port of `warpped/warp_gif.py` reorganized as a library module so
-    main.py can call `warp_swir_to_nir` directly. The main behavioural
-    changes versus the original are:
-      * No reliance on `sys.path.append('../../VNIR')`; we import
-        `clean_code.vnir_utils.utils` instead.
-      * Hard-coded scene names removed; `args.scene_name` drives paths.
-      * The main loop accepts in-memory arrays from main.py (rather
-        than loading swir_<scene>.npy / nir_<scene>.npy from disk),
-        but a backwards-compatible disk-loading helper is also kept.
-"""
-
 import os
 
 import cv2
@@ -21,7 +6,7 @@ from tqdm import tqdm
 
 from guided_filter.core.filter import GuidedFilter
 
-from clean_code.vnir_utils import utils
+from bh3d_utils import utils
 
 
 # --------------------------------------------------------------------------
@@ -155,14 +140,20 @@ def uncrop_recon(args, img_crop, n_wvls, cam_type):
 
 def warp_swir_to_nir(args, swir_unwarped, nir_unwarped):
     """
-        For each SWIR wavelength index in
-            [args.swir_warp_idx_start, args.swir_warp_idx_end):
-          1. Detail-transfer using NIR-side guide image (same scene).
-          2. Warp from SWIR-cam frame to NIR-cam frame using both
-             depth maps with an occlusion gate.
-        Saves PNGs into args.warp_output_dir / scene_name.
+        NIR (reference frame, no spatial warp):
+          - Wavelengths in [nir_sharp_lo, nir_sharp_hi]: kept as-is.
+          - Wavelengths < nir_sharp_lo: guided detail transfer using the NIR
+            band at nir_sharp_lo as the sharp guide.
+          - Wavelengths > nir_sharp_hi: guided detail transfer using the NIR
+            band at nir_sharp_hi as the sharp guide.
 
-        Returns the full warped stack for SWIR.
+        SWIR:
+          - All wavelengths are inverse-warped from SWIR-cam to NIR-cam frame.
+          - Wavelengths in [swir_sharp_lo, swir_sharp_hi]: warp only.
+          - Wavelengths outside that range: guided detail transfer first
+            (guide = SWIR band at the nearer boundary), then warp.
+
+        Saves PNGs into args.warp_output_dir / scene_name.
     """
     scene = args.scene_name
     save_dir = os.path.join(args.warp_output_dir, scene)
@@ -174,22 +165,52 @@ def warp_swir_to_nir(args, swir_unwarped, nir_unwarped):
     swir_full = uncrop_recon(args, swir_unwarped, len(args.interp_wvls_swir), 'swir')
     nir_full = uncrop_recon(args, nir_unwarped, len(args.interp_wvls_nir), 'nir')
 
-    # NIR guide is unused here unless you want symmetric warping; keep
-    # the SWIR guide as in warp_gif.py.
-    swir_guide = swir_full[args.swir_guide_idx]
-
     K1, K2, d1, d2, R, T = utils.get_camera_parameters(args)
 
+    # ---------- NIR: guided sharpening only outside [nir_sharp_lo, nir_sharp_hi] ----------
+    nir_wvls = np.asarray(args.interp_wvls_nir)
+    nir_lo, nir_hi = args.nir_sharp_lo, args.nir_sharp_hi
+    nir_lo_idx = int(np.argmin(np.abs(nir_wvls - nir_lo)))
+    nir_hi_idx = int(np.argmin(np.abs(nir_wvls - nir_hi)))
+    nir_guide_lo_u8 = (nir_full[nir_lo_idx] * 255).astype(np.uint8)
+    nir_guide_hi_u8 = (nir_full[nir_hi_idx] * 255).astype(np.uint8)
+
+    nir_detailed = nir_full.copy()
+    for i, w in enumerate(tqdm(nir_wvls, desc='[NIR-sharpen]')):
+        target_u8 = (nir_full[i] * 255).astype(np.uint8)
+        if nir_lo <= w <= nir_hi:
+            out_u8 = target_u8
+        else:
+            guide_u8 = nir_guide_lo_u8 if w < nir_lo else nir_guide_hi_u8
+            out_u8 = guided_detail_transfer(
+                guide_u8, target_u8,
+                r=args.guided_r, eps=args.guided_eps, alpha=args.guided_alpha,
+            )
+            nir_detailed[i] = out_u8.astype(np.float32) / 255.0
+        cv2.imwrite(os.path.join(save_dir, f'nir_{int(w)}nm.png'), out_u8)
+
+    # ---------- SWIR: warp all; guided sharpening only outside [swir_sharp_lo, swir_sharp_hi] ----------
+    swir_wvls = np.asarray(args.interp_wvls_swir)
+    swir_lo, swir_hi = args.swir_sharp_lo, args.swir_sharp_hi
+    swir_lo_idx = int(np.argmin(np.abs(swir_wvls - swir_lo)))
+    swir_hi_idx = int(np.argmin(np.abs(swir_wvls - swir_hi)))
+    swir_guide_lo_u8 = (swir_full[swir_lo_idx] * 255).astype(np.uint8)
+    swir_guide_hi_u8 = (swir_full[swir_hi_idx] * 255).astype(np.uint8)
+
     swir_warped = np.zeros_like(swir_full)
-    for i in tqdm(range(args.swir_warp_idx_start, args.swir_warp_idx_end),
-                  desc='[Warp-swir]'):
-        guide_u8 = (swir_guide * 255).astype(np.uint8)
+    for i, w in enumerate(tqdm(swir_wvls, desc='[SWIR-warp]')):
         target_u8 = (swir_full[i] * 255).astype(np.uint8)
-        gf = guided_detail_transfer(guide_u8, target_u8,
-                                    r=args.guided_r, eps=args.guided_eps, alpha=args.guided_alpha)
+        if swir_lo <= w <= swir_hi:
+            sharp_u8 = target_u8
+        else:
+            guide_u8 = swir_guide_lo_u8 if w < swir_lo else swir_guide_hi_u8
+            sharp_u8 = guided_detail_transfer(
+                guide_u8, target_u8,
+                r=args.guided_r, eps=args.guided_eps, alpha=args.guided_alpha,
+            )
 
         warped, _ = inverse_warp_with_depth_check(
-            gf, nir_depth[:, :, 2], swir_depth[:, :, 2],
+            sharp_u8, nir_depth[:, :, 2], swir_depth[:, :, 2],
             K1, d1.reshape(-1), K2, d2.reshape(-1), R, T,
             depth_thresh_mm=args.warp_depth_thresh_mm,
             smooth_depth1=args.warp_smooth_depth1,
@@ -197,6 +218,6 @@ def warp_swir_to_nir(args, swir_unwarped, nir_unwarped):
             smooth_sigma=args.warp_smooth_sigma,
         )
         swir_warped[i] = warped.astype(np.float32)
-        cv2.imwrite(os.path.join(save_dir, f'swir_{args.interp_wvls_swir[i]}nm.png'), warped)
+        cv2.imwrite(os.path.join(save_dir, f'swir_{int(w)}nm.png'), warped)
 
-    return swir_warped, nir_full
+    return nir_detailed, nir_full, swir_warped, swir_full

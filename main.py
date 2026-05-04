@@ -1,42 +1,21 @@
-"""
-    ### NEW (clean_code) ###
-    End-to-end VNIR pipeline driver.
-
-    This script replaces the original main.py. The old flow required
-    running hdr.ipynb first to dump per-scene HDR npys, then main.py.
-    Here the HDR step is integrated, so a single command runs:
-
-        1. Stereo image preparation     (max-projection of galvo scans)
-        2. HDR generation               (replaces hdr.ipynb)
-        3. Foundation Stereo depth      (NIR view + SWIR view)
-        4. Hyperspectral optimization   (per camera)
-        5. Warping + guided detail xfer (SWIR -> NIR)
-
-    Run from the repository root:
-        python -m clean_code.main --scene_name extra_scene
-"""
-
 import os
 import sys
 
 import numpy as np
 
-# Make the repo root importable both as a package (clean_code.*) and
-# as the CWD-based `vnir_recon`/`vnir_utils` references that
-# Foundation Stereo expects. We assume invocation from the repo root.
 sys.path.insert(0, os.getcwd())
 
-from clean_code.vnir_recon.recon_depth import ReconDepth
-from clean_code.vnir_recon.recon_vnir import ReconVNIR
-from clean_code.vnir_utils import argparser
-from clean_code.vnir_utils.hdr import make_hdr_npy
-from clean_code.vnir_utils.utils import (
+from bh3d_recon.recon_depth import ReconDepth
+from bh3d_recon.recon_bh import ReconBH
+from bh3d_utils import argparser
+from bh3d_utils.hdr import make_hdr_npy
+from bh3d_utils.utils import (
     get_radiometric_data,
     get_wvls,
     make_stereo_images,
 )
-from clean_code.vnir_utils.warp import warp_swir_to_nir
-
+from bh3d_utils.warp import warp_swir_to_nir
+    
 
 def _save_recon(args, cam_type, opt_param):
     os.makedirs(args.recon_output_dir, exist_ok=True)
@@ -55,7 +34,7 @@ def _load_recon_if_present(args, cam_type):
 
 
 def main(args):
-    print(f'\n=== VNIR clean pipeline | scene = "{args.scene_name}" ===\n')
+    print(f'\n=== bh3d clean pipeline | scene = "{args.scene_name}" ===\n')
 
     # ------------------------------------------------------------
     # 1. Stereo image preparation
@@ -88,8 +67,8 @@ def main(args):
         wvls = get_wvls(args, cam_type)
         L_lambda, _srf = get_radiometric_data(args.radiometric_data_dir, cam_type, wvls)
 
-        recon_vnir = ReconVNIR(args, cam_type)
-        opt_param = recon_vnir.optimization(L_lambda, wvls, depths, hdr_stack)
+        recon_bh = ReconBH(args, cam_type)
+        opt_param = recon_bh.optimization(L_lambda, wvls, depths, hdr_stack)
 
         _save_recon(args, cam_type, opt_param)
         recon_outputs[cam_type] = opt_param
@@ -110,7 +89,7 @@ def main(args):
         swir_unwarped = swir_opt.reshape(-1, len(args.interp_wvls_swir),
                                          args.crop_h, args.crop_w)[0]
 
-        warp_swir_to_nir(args, swir_unwarped, nir_unwarped)
+        nir_detailed, nir_full, swir_warped, swir_full = warp_swir_to_nir(args, swir_unwarped, nir_unwarped)
     else:
         print('[Step 5/5] skipping warping — need both NIR and SWIR recon outputs.')
 

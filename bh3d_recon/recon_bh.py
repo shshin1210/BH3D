@@ -1,12 +1,3 @@
-"""
-    Hyperspectral reflectance optimization.
-
-    The clean_code variant takes the HDR stack as an in-memory tensor
-    instead of reading `<hdr_data_dir>/%s_hdr_%s.npy` from disk. This
-    lets `main.py` produce the HDR stack and immediately feed it into
-    the optimizer without an intermediate save/load.
-"""
-
 import os
 
 import matplotlib
@@ -16,21 +7,22 @@ import numpy as np  # noqa: E402
 import torch  # noqa: E402
 from tqdm import tqdm  # noqa: E402
 
-from clean_code.vnir_sl.render import Renderer
-from clean_code.vnir_utils.utils import mask
+from bh3d_sl.render import Renderer
+from bh3d_utils.utils import mask
 
 
-class ReconVNIR:
+class ReconBH:
     """Optimize per-pixel hyperspectral reflectance H(lambda)."""
 
     def __init__(self, args, cam_type):
         self.args = args
         self.device = args.cuda_device
         self.cam_type = cam_type
+        self.crop_x_start = args.crop_x_nir if cam_type == 'nir' else args.crop_x_swir
 
     # --------------------------------------------------------------
     def crop(self, data):
-        x_tl, y_tl = self.args.crop_x_start, self.args.crop_y_start
+        x_tl, y_tl = self.crop_x_start, self.args.crop_y_start
         h, w = self.args.crop_h, self.args.crop_w
         return data[y_tl:y_tl + h, x_tl:x_tl + w]
 

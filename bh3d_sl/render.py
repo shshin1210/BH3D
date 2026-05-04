@@ -1,21 +1,8 @@
-"""
-    Spectrally-resolved renderer.
-
-    Only the renderer paths used by the clean_code pipeline are kept:
-        - constructor pre-loads the depth-conditioned (mean, std) maps
-        - gaussian_render_crop produces the simulated cropped image
-          for one (date, angle) pair given (L_lambda, H_lambda)
-
-    Anything related to bandpass-filter rendering, naive rendering, or
-    the W-MLP code path is dropped because the clean main.py does not
-    exercise them.
-"""
-
 import numpy as np
 import torch
 from tqdm import tqdm
 
-from clean_code.vnir_utils.utils import scene_dependent_model_sharded_interp
+from bh3d_utils.utils import scene_dependent_model_sharded_interp
 
 
 class Renderer:
@@ -26,6 +13,7 @@ class Renderer:
         self.date = date
         self.depth = depth
         self.mask = mask
+        self.crop_x_start = args.crop_x_nir if cam_type == 'nir' else args.crop_x_swir
 
         print(f'[Renderer] building scene-dependent W model for {cam_type}...')
         scene_mean = []
@@ -44,7 +32,7 @@ class Renderer:
 
     # ------------------------------------------------------------
     def _crop(self, data):
-        x_tl, y_tl = self.args.crop_x_start, self.args.crop_y_start
+        x_tl, y_tl = self.crop_x_start, self.args.crop_y_start
         h, w = self.args.crop_h, self.args.crop_w
         return data[:, y_tl:y_tl + h, x_tl:x_tl + w]
 

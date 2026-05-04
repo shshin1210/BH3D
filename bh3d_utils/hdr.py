@@ -1,23 +1,3 @@
-"""
-    ### NEW (clean_code) ###
-    HDR generation module — replaces `hdr.ipynb`.
-
-    For a given scene + camera, multi-exposure captures are stored under
-        <hdr_data_dir>/<scene>_<fps>fps/<cam_type>/capture_XXXX.png
-    where capture_0000.png is the black frame.
-
-    For each angle index i in [0, n_angle):
-        1. Read the LDR image at every fps.
-        2. Subtract the corresponding black frame (capture_0000.png).
-        3. Fuse using a trapezoidal weight in (LDR space) and a
-           ramp weight in (black-removed LDR space). The final weight
-           is the elementwise minimum of the two.
-        4. Normalize each capture by its exposure (in ms) and combine.
-
-    Output: an HDR stack of shape (n_angle, H, W) saved as
-        <hdr_data_dir>/<cam_type>_hdr_<scene>.npy
-"""
-
 import os
 
 import cv2
@@ -97,7 +77,10 @@ def make_hdr_npy(args, cam_type):
         print(f'[HDR] {cam_type}: cached -> {out_path}')
         return np.load(out_path)
 
-    fps_samples = np.array(args.hdr_fps_samples)
+    if cam_type == 'nir':
+        fps_samples = np.array(args.vnir_hdr_fps_samples)
+    elif cam_type == 'swir':
+        fps_samples = np.array(args.swir_hdr_fps_samples)
 
     ex_time_us = (1.0 / fps_samples) * 1e6 - (1.0 / fps_samples) * 1e5
     ex_time_ms = ex_time_us / 1e3

@@ -1,18 +1,3 @@
-"""
-    Argparser for the clean_code VNIR pipeline.
-
-    The original arguments are taken verbatim from
-    `vnir_utils/argparser.py` so we keep the captured-data /
-    calibration paths consistent.
-
-    All arguments newly introduced for the clean_code refactor are
-    grouped at the bottom of `__init__` and clearly marked with
-    `### NEW (clean_code)` banners. They cover:
-        * HDR generation (replaces hdr.ipynb)
-        * Hyperspectral reconstruction output
-        * Warping (warp_gif.py integration)
-"""
-
 import argparse
 import numpy as np
 
@@ -25,7 +10,7 @@ class Argument:
         self.parser.add_argument('--cuda_device', type=str, default="cuda:0", help="cuda device")
 
         # ---------------- optimization ----------------
-        self.parser.add_argument('--epoch', type=int, default=600)
+        self.parser.add_argument('--epoch', type=int, default=20)
         self.parser.add_argument('--lr', type=float, default=0.1)
         self.parser.add_argument('--decay_step', type=int, default=590)
         self.parser.add_argument('--gamma', type=float, default=0.9)
@@ -123,25 +108,19 @@ class Argument:
         self.parser.add_argument('--crop_y_swir', type=int, default=170)
 
         # ---------------- crop region for optimization / rendering ----------------
-        self.parser.add_argument('--crop_x_start', type=int, default=330)
         self.parser.add_argument('--crop_y_start', type=int, default=170)
         self.parser.add_argument('--crop_h', type=int, default=640)
         self.parser.add_argument('--crop_w', type=int, default=740)
 
-        # =====================================================================
-        # ### NEW (clean_code) ###
-        #   Arguments below were added when refactoring main.py so it can
-        #   run the full pipeline (stereo -> HDR -> recon -> warp) without
-        #   relying on hdr.ipynb pre-processing.
-        # =====================================================================
-
-        # --- HDR (replaces hdr.ipynb) ---
+        # --- HDR ---
         self.parser.add_argument('--scene_name', type=str, default='extra_scene',
                                  help='[NEW] Scene name used for the HDR / recon / warp pipeline')
         self.parser.add_argument('--hdr_data_dir', type=str,
                                  default='./dataset/hdr_dataset',
                                  help='[NEW] Directory holding multi-exposure HDR captures and where the produced HDR npys are written')
-        self.parser.add_argument('--hdr_fps_samples', nargs='+', type=int, default=[3, 5],
+        self.parser.add_argument('--vnir_hdr_fps_samples', nargs='+', type=int, default=[2, 4],
+                                 help='[NEW] FPS values of the multi-exposure captures (subdirs named %s_<fps>fps)')
+        self.parser.add_argument('--swir_hdr_fps_samples', nargs='+', type=int, default=[3, 5],
                                  help='[NEW] FPS values of the multi-exposure captures (subdirs named %s_<fps>fps)')
         self.parser.add_argument('--hdr_invalid_intensity_ratio', type=float, default=0.01,
                                  help='[NEW] Trapezoidal weight invalid-intensity ratio for HDR fusion')
@@ -171,12 +150,17 @@ class Argument:
                                  help='[NEW] Guided filter regularization (eps)')
         self.parser.add_argument('--guided_alpha', type=float, default=3.0,
                                  help='[NEW] Guided filter detail-transfer gain')
-        self.parser.add_argument('--swir_warp_idx_start', type=int, default=17,
-                                 help='[NEW] Inclusive start index of SWIR wvls to warp')
-        self.parser.add_argument('--swir_warp_idx_end', type=int, default=43,
-                                 help='[NEW] Exclusive end index of SWIR wvls to warp')
-        self.parser.add_argument('--swir_guide_idx', type=int, default=27,
-                                 help='[NEW] Index of the SWIR wvl used as guide for guided filtering')
+        # Guided sharpening wavelength ranges (inclusive). Wavelengths inside
+        # the range are kept as-is; wavelengths outside borrow the sharp guide
+        # from the nearer boundary (lo for shorter, hi for longer).
+        self.parser.add_argument('--nir_sharp_lo', type=int, default=510,
+                                 help='[NEW] Lower bound (nm) of the NIR no-sharpen range; also the guide wvl for shorter NIR wvls')
+        self.parser.add_argument('--nir_sharp_hi', type=int, default=850,
+                                 help='[NEW] Upper bound (nm) of the NIR no-sharpen range; also the guide wvl for longer NIR wvls')
+        self.parser.add_argument('--swir_sharp_lo', type=int, default=950,
+                                 help='[NEW] Lower bound (nm) of the SWIR no-sharpen range; also the guide wvl for shorter SWIR wvls')
+        self.parser.add_argument('--swir_sharp_hi', type=int, default=1200,
+                                 help='[NEW] Upper bound (nm) of the SWIR no-sharpen range; also the guide wvl for longer SWIR wvls')
 
         # --- Pipeline switches ---
         self.parser.add_argument('--cam_types', nargs='+', type=str, default=['nir', 'swir'],
