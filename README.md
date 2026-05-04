@@ -35,17 +35,19 @@ clean_code/
 ├── bh3d_sl/
 │   ├── render.py           ← simulated rendering (gaussian_render_crop)
 │   └── datatools.py
-└── bh3d_recon/
+├── bh3d_recon/
     ├── recon_depth.py      ← Foundation Stereo wrapper
     └── recon_vnir.py       ← in-memory HDR variant
+├── FoundationStereo/
+└── guided_filter/
 ```
 
 External dependencies (must remain at the repo root and were not
 modified):
 
 * `FoundationStereo/` — pretrained stereo model
-* `guided_filter/` — guided-filter implementation used by warping
-* `calibration/` — radiometric, prism, and stereo calibration data
+* `guided_filter/` — guided-filter implementation used by sharpening
+* `calibration/` — radiometric, prism, and stereo calibration data (We provide an expample calibration parameters in our [BH3D Calibration Parameters](https://drive.google.com/drive/u/0/folders/128apzV3A4GjllRUOafMHEM0yIY_EZvLf).)
 * `dataset/` — captured frames, radiometric data, and HDR raw captures
 
 ## Argparser additions
