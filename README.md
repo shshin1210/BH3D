@@ -1,6 +1,5 @@
 # Broadband Hyperspectral 3D Imaging using Dispersed Structured Light
 
-----------------------------
 [BH3D](https://shshin1210.github.io/DDSL/) (Broadband Hyperspectral 3D Imaging using Dispersed Structured Light) reconstructs depth and both spectral information : Visible to SWIR (450nm ~ 1500nm) spectral ranges at 20nm (visible range) 25nm (SWIR range) interval.
 
 
