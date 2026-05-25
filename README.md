@@ -16,7 +16,7 @@ together; step 5 is run once at the end.
 | # | Step | Module | What it does |
 |---|------|--------|--------------|
 | 1 | Stereo image preparation | `vnir_utils/utils.py::make_stereo_images` | Max-projects galvo-scanned captures into a single sharp image per camera and writes `<scene>_depth/<cam>/capture_0000.png`. |
-| 2 | HDR generation | `vnir_utils/hdr.py::make_hdr_npy` | For each angle index, fuses the multi-exposure captures (under `<hdr_data_dir>/<scene>_<fps>fps/<cam>`) using a trapezoid weight + black-frame subtraction and writes `<hdr_data_dir>/<cam>_hdr_<scene>.npy`. Replaces `hdr.ipynb`. |
+| 2 | HDR generation | `vnir_utils/hdr.py::make_hdr_npy` | For each angle index, fuses the multi-exposure captures (under `<hdr_data_dir>/<scene>_<fps>fps/<cam>`) using a trapezoid weight + black-frame subtraction and writes `<hdr_data_dir>/<cam>_hdr_<scene>.npy`. |
 | 3 | Depth reconstruction | `vnir_recon/recon_depth.py` | Rectifies the stereo pair, runs Foundation Stereo, then inverse-rectifies the disparity into the original camera frame. Caches `<scene>_depth/<cam>_depth.npy`. |
 | 4 | Hyperspectral recon | `vnir_recon/recon_vnir.py` | Adam-optimizes per-pixel hyperspectral reflectance against the HDR stack (in-memory — no disk round-trip). Saves `<recon_output_dir>/<cam>_<scene>.npy`. |
 | 5 | Warping | `vnir_utils/warp.py` | Detail-transfers using a guided filter on the SWIR side, then warps each SWIR wavelength into the NIR camera view using both depth maps + an occlusion gate. PNGs go to `<warp_output_dir>/<scene>/`. |
