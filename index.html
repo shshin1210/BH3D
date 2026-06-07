@@ -50,6 +50,7 @@
   <script src="./static/js/bulma-carousel.min.js"></script>
   <script src="./static/js/bulma-slider.min.js"></script>
   <script src="./static/js/index.js"></script>
+  <script src="https://elerac.github.io/plenoview/embed/plenoview.js"></script>
 </head>
 <body>
 
@@ -358,6 +359,33 @@
           <source src="./static/videos/supple_compressed.mp4" type="video/mp4">
         </video>
 
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Interactive 3D viewer -->
+<section class="section">
+  <div class="container is-max-desktop" style="padding: 0;">
+    <div class="columns is-centered" style="margin: 0; width:100%">
+      <div class="column is-centered has-text-centered">
+        <h2 class="title is-3 has-text-centered">Interactive 3D View</h2>
+        <div class="content has-text-justified" style="font-size: 1.25em; line-height: 1.5;">
+          <p>
+            The interactive 3D view below shows a reconstructed scene in 3D. Opening the full viewer provides additional controls for exploring the hyperspectral image.
+          </p>
+        </div>
+        <p style="margin-bottom: 10px;"></p>
+        <plenoview-viewer
+          src="./static/images/exr/bunny.exr"
+          name="Interactive 3D View"
+          view="3d"
+          source-origin="parent"
+          three-d-auto-orbit="true"
+          bottom-panel="none"
+          height="520">
+        </plenoview-viewer>
       </div>
     </div>
   </div>
