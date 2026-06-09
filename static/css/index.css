@@ -155,3 +155,29 @@ body {
 #interpolation-image-wrapper img {
   border-radius: 5px;
 }
+
+.interactive-viewer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.interactive-viewer-item {
+  min-width: 0;
+}
+
+.interactive-viewer-item .title {
+  margin-bottom: 0.75rem;
+}
+
+.interactive-viewer-item plenoview-viewer {
+  display: block;
+  width: 100%;
+}
+
+@media screen and (min-width: 1024px) {
+  .interactive-viewer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
