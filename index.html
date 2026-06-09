@@ -370,22 +370,62 @@
   <div class="container is-max-desktop" style="padding: 0;">
     <div class="columns is-centered" style="margin: 0; width:100%">
       <div class="column is-centered has-text-centered">
-        <h2 class="title is-3 has-text-centered">Interactive 3D View</h2>
+        <h2 class="title is-3 has-text-centered">Interactive 3D Views</h2>
         <div class="content has-text-justified" style="font-size: 1.25em; line-height: 1.5;">
           <p>
-            The interactive 3D view below shows a reconstructed scene in 3D. Opening the full viewer provides additional controls for exploring the hyperspectral image.
+            The interactive 3D views below show reconstructed scenes in 3D. Opening the full viewer provides additional controls for exploring the hyperspectral images.
           </p>
         </div>
-        <p style="margin-bottom: 10px;"></p>
-        <plenoview-viewer
-          src="./static/images/exr/bunny.exr"
-          name="Interactive 3D View"
-          view="3d"
-          source-origin="parent"
-          three-d-auto-orbit="true"
-          bottom-panel="none"
-          height="520">
-        </plenoview-viewer>
+        <div class="interactive-viewer-grid">
+          <div class="interactive-viewer-item">
+            <h3 class="title is-5 has-text-centered">Bunny</h3>
+            <plenoview-viewer
+              src="./static/images/exr/bunny.exr"
+              name="Bunny"
+              view="3d"
+              source-origin="parent"
+              three-d-auto-orbit="true"
+              bottom-panel="none"
+              height="420">
+            </plenoview-viewer>
+          </div>
+          <div class="interactive-viewer-item">
+            <h3 class="title is-5 has-text-centered">Wet vs. dry materials</h3>
+            <plenoview-viewer
+              src="./static/images/exr/water.exr"
+              name="Wet vs. dry materials"
+              view="3d"
+              source-origin="parent"
+              three-d-auto-orbit="true"
+              bottom-panel="none"
+              height="420">
+            </plenoview-viewer>
+          </div>
+          <div class="interactive-viewer-item">
+            <h3 class="title is-5 has-text-centered">Plants and a bill</h3>
+            <plenoview-viewer
+              src="./static/images/exr/money.exr"
+              name="Plants and a bill"
+              view="3d"
+              source-origin="parent"
+              three-d-auto-orbit="true"
+              bottom-panel="none"
+              height="420">
+            </plenoview-viewer>
+          </div>
+          <div class="interactive-viewer-item">
+            <h3 class="title is-5 has-text-centered">Vinyl</h3>
+            <plenoview-viewer
+              src="./static/images/exr/vinyl.exr"
+              name="Vinyl"
+              view="3d"
+              source-origin="parent"
+              three-d-auto-orbit="true"
+              bottom-panel="none"
+              height="420">
+            </plenoview-viewer>
+          </div>
+        </div>
       </div>
     </div>
   </div>
