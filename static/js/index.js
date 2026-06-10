@@ -12,8 +12,7 @@ var INTERACTIVE_VIEWER_SCENES = [
 ];
 
 var interp_images = [];
-var activeMobileSceneIndex = 0;
-var renderedInteractiveViewerMode = null;
+var activeInteractiveSceneIndex = 0;
 
 function preloadInterpolationImages() {
   for (var i = 0; i < NUM_INTERP_FRAMES; i++) {
@@ -56,20 +55,8 @@ function createInteractiveViewerItem(scene, autoOrbit) {
   return item;
 }
 
-function renderDesktopInteractiveViewers() {
-  var grid = document.getElementById('desktop-interactive-viewer-grid');
-  if (!grid) {
-    return;
-  }
-
-  grid.innerHTML = '';
-  for (var i = 0; i < INTERACTIVE_VIEWER_SCENES.length; i++) {
-    grid.appendChild(createInteractiveViewerItem(INTERACTIVE_VIEWER_SCENES[i], true));
-  }
-}
-
-function renderMobileSceneSelector() {
-  var selector = document.getElementById('mobile-scene-selector');
+function renderSceneSelector() {
+  var selector = document.getElementById('scene-selector');
   if (!selector) {
     return;
   }
@@ -80,55 +67,39 @@ function renderMobileSceneSelector() {
     var button = document.createElement('button');
 
     button.type = 'button';
-    button.className = 'mobile-scene-button';
+    button.className = 'scene-button';
     button.textContent = scene.name;
-    button.setAttribute('aria-pressed', i === activeMobileSceneIndex ? 'true' : 'false');
+    button.setAttribute('aria-pressed', i === activeInteractiveSceneIndex ? 'true' : 'false');
     button.dataset.sceneIndex = i;
 
-    if (i === activeMobileSceneIndex) {
+    if (i === activeInteractiveSceneIndex) {
       button.classList.add('is-active');
     }
 
     button.addEventListener('click', function(event) {
-      activeMobileSceneIndex = Number(event.currentTarget.dataset.sceneIndex);
-      renderMobileSceneSelector();
-      renderMobileInteractiveViewer();
+      activeInteractiveSceneIndex = Number(event.currentTarget.dataset.sceneIndex);
+      renderSceneSelector();
+      renderInteractiveViewer();
     });
 
     selector.appendChild(button);
   }
 }
 
-function renderMobileInteractiveViewer() {
-  var viewer = document.getElementById('mobile-scene-viewer');
+function renderInteractiveViewer() {
+  var viewer = document.getElementById('scene-viewer');
   if (!viewer) {
     return;
   }
 
+  var isDesktop = window.matchMedia(INTERACTIVE_VIEWER_DESKTOP_QUERY).matches;
   viewer.innerHTML = '';
-  viewer.appendChild(createInteractiveViewerItem(INTERACTIVE_VIEWER_SCENES[activeMobileSceneIndex], false));
+  viewer.appendChild(createInteractiveViewerItem(INTERACTIVE_VIEWER_SCENES[activeInteractiveSceneIndex], isDesktop));
 }
 
 function renderInteractiveViewers() {
-  var desktopGrid = document.getElementById('desktop-interactive-viewer-grid');
-  var mobileViewer = document.getElementById('mobile-scene-viewer');
-  var isDesktop = window.matchMedia(INTERACTIVE_VIEWER_DESKTOP_QUERY).matches;
-  var mode = isDesktop ? 'desktop' : 'mobile';
-
-  if (!desktopGrid || !mobileViewer || mode === renderedInteractiveViewerMode) {
-    return;
-  }
-
-  renderedInteractiveViewerMode = mode;
-
-  if (isDesktop) {
-    mobileViewer.innerHTML = '';
-    renderDesktopInteractiveViewers();
-  } else {
-    desktopGrid.innerHTML = '';
-    renderMobileSceneSelector();
-    renderMobileInteractiveViewer();
-  }
+  renderSceneSelector();
+  renderInteractiveViewer();
 }
 
 
